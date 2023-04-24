@@ -1,0 +1,66 @@
+﻿@page "/products"
+@using AzureServiceBus.Services
+@using AzureServiceBus.Models
+@inject IQueueService queue
+
+<PageTitle>Azure Service Bus</PageTitle>
+<h3>Azure Service Bus Receiver</h3>
+<hr style="height:2px;border-width:0;color:gray;background-color:gray" />
+
+<div class="card-body">
+    <div class="row">
+        <div class="col-md-12 panel panel-default">
+            <p class="text-muted small">
+                <i class="fas fa-info-circle mr-2"></i>&nbsp;&nbsp;Click Refresh-button to receive/check the latest messages.
+            </p>
+            <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+            @if (ProductData == null)
+            {
+                <div class="spinner"></div>
+            }
+            else
+            {
+                <SfGrid DataSource="@ProductData" TValue="Product">
+                    <GridEditSettings AllowAdding="false"
+                                  AllowDeleting="false"
+                                  AllowEditing="false"
+                                  Mode="EditMode.Normal"></GridEditSettings>
+                    <GridColumns>
+                        <GridColumn Field="@nameof(Product.Name)" Width="200"></GridColumn>
+                        <GridColumn Field="@nameof(Product.Description)" Width="400"></GridColumn>
+                        <GridColumn Field="@nameof(Product.Price)" Width="80"></GridColumn>
+                    </GridColumns>
+                </SfGrid>
+            }
+        </div>
+    </div>
+</div>
+<div class="placeholder-100pct">&nbsp;</div>
+<h6 class="card-header text-muted">
+    <span class="float-sm-right">
+        <button id="btnRefresh"
+                type="button"
+                title="Refresh"
+                onclick="@RefreshData"
+                class="btn btn-primary">
+            Refresh
+        </button>
+    </span>
+</h6>
+
+@code {
+    public List<Product> ProductData { get; set; }
+
+    /// <summary>
+    /// Receive messages from Azure Service Bus when the page is loaded
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        ProductData = await queue.ReceiveMessages("productqueue");
+    }
+
+    async Task RefreshData()
+    {
+        ProductData = await queue.ReceiveMessages("productqueue");
+    }
+}
